@@ -5,7 +5,6 @@
  */
 interface VehicleBaseInterface
 {
-    public function musicOn();
     public function emptyLoads(string $object);
     public function refuel($object);
     public function stop();
@@ -41,6 +40,15 @@ interface RoadVehicleInterface
 }
 
 /**
+ * Interface LeisureVehicleInterface
+ */
+interface LeisureVehicleInterface
+{
+    public function musicOn();
+}
+
+
+    /**
  * Class WatherVehicleTypes
  */
 final class WatherVehicleTypes
