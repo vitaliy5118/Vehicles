@@ -1,12 +1,13 @@
 <?php
+
 /**
  * base vehicle capabilities
  * Interface VehicleInterface
  */
 interface VehicleBaseInterface
 {
-    public function emptyLoads(string $object);
-    public function refuel($object);
+    public function emptyLoads($fuel);
+    public function refuel($fuel);
     public function stop();
 }
 
@@ -47,46 +48,103 @@ interface LeisureVehicleInterface
     public function musicOn();
 }
 
+/**
+ * Interface EnumerationInterface
+ */
+interface  EnumerationInterface
+{
+    public static function getItems(): array;
+}
 
     /**
- * Class WatherVehicleTypes
- */
-final class WatherVehicleTypes
+     * Class WatherVehicleTypes
+     */
+final class WatherVehicleTypes implements EnumerationInterface
 {
-    const TYPES = [
-        'boat',
-        'vessel',
-        'yacht',
-    ];
+    const BOAT = 'boat';
+    const VESSEL = 'vessel';
+    const YACHT = 'yacht';
+
+    /**
+     * @return array
+     */
+    public static function getItems(): array
+    {
+        return [
+            self::BOAT,
+            self::VESSEL,
+            self::YACHT
+        ];
+    }
 }
 
 /**
  * Class FlyVehicleTypes
  */
-final class FlyVehicleTypes
+final class FlyVehicleTypes implements EnumerationInterface
 {
-    const TYPES = [
-        'helicopter',
-        'aircraft',
-    ];
+    const HELICOPTER = 'helicopter';
+    const AIRCRAFT = 'aircraft';
+
+    /**
+     * @return array
+     */
+    public static function getItems(): array
+    {
+        return [
+            self::HELICOPTER,
+            self::AIRCRAFT,
+        ];
+    }
 }
 
 /**
  * Class RoadVehicleTypes
  */
-final class RoadVehicleTypes
+final class RoadVehicleTypes implements EnumerationInterface
 {
-    const TYPES = [
-        'bmw',
-        'kamaz',
-    ];
+    const BMW = 'bmw';
+    const KAMAZ = 'kamaz';
+
+    /**
+     * @return array
+     */
+    public static function getItems(): array
+    {
+        return [
+            self::BMW,
+            self::KAMAZ,
+        ];
+    }
+}
+
+/**
+ * Class RoadVehicleTypes
+ */
+final class FuelTypes implements EnumerationInterface
+{
+    const GAS = 'gas';
+    const DIESEL = 'diesel';
+    const KEROSENE = 'kerosene';
+
+    /**
+     * @return array
+     */
+    public static function getItems(): array
+    {
+        return [
+            self::GAS,
+            self::DIESEL,
+            self::KEROSENE,
+        ];
+    }
 }
 
 /**
  * base vehicle strategy
  * Class VehicleBase
  */
-class VehicleBase implements VehicleBaseInterface
+class VehicleBase implements VehicleBaseInterface, LeisureVehicleInterface
 {
     public $vehicle;
 
@@ -100,14 +158,14 @@ class VehicleBase implements VehicleBaseInterface
         echo $this->vehicle->getName() . ' music switched on <br>';
     }
 
-    public function emptyLoads(string $object)
+    public function emptyLoads($fuel)
     {
-        echo $this->vehicle->getName() . ' refuel ' . $object .' <br>';
+        echo $this->vehicle->getName() . ' empty loads ' . $fuel .' <br>';
     }
 
-    public function refuel($object)
+    public function refuel($fuel)
     {
-        echo $this->vehicle->getName() . ' refuel ' . $object .' <br>';
+        echo $this->vehicle->getName() . ' refuel ' . $fuel .' <br>';
     }
 
     public function stop()
@@ -171,19 +229,19 @@ class RoadVehicle extends VehicleBase implements RoadVehicleInterface
  * vehicle factory
  * Class VehicleManager
  */
-class VehicleManager
+class VehicleTypist
 {
-    public function init(Vehicle $vehicle)
+    public function getStrategy(Vehicle $vehicle)
     {
-        if (in_array($vehicle->getName(), WatherVehicleTypes::TYPES)) {
+        if (in_array($vehicle->getName(), WatherVehicleTypes::getItems())) {
             return new WatherVehicle($vehicle);
         }
 
-        if (in_array($vehicle->getName(), FlyVehicleTypes::TYPES)) {
+        if (in_array($vehicle->getName(), FlyVehicleTypes::getItems())) {
             return new FlyVehicle($vehicle);
         }
 
-        if (in_array($vehicle->getName(), RoadVehicleTypes::TYPES)) {
+        if (in_array($vehicle->getName(), RoadVehicleTypes::getItems())) {
             return new RoadVehicle($vehicle);
         }
 
@@ -203,8 +261,8 @@ class Vehicle
     {
         $this->name = $name;
 
-        $manager = new VehicleManager;
-        $this->strategy = $manager->init($this);
+        $strategy = new VehicleTypist;
+        $this->strategy = $strategy->getStrategy($this);
     }
 
     /**
@@ -228,6 +286,7 @@ foreach ($vehicles as $vehicle) {
             break;
         case 'boat':
             $vehicle->strategy->swim();
+            $vehicle->strategy->stop();
             break;
         case 'helicopter':
             $vehicle->strategy->takeOff();
@@ -236,13 +295,14 @@ foreach ($vehicles as $vehicle) {
             break;
         case 'kamaz':
             $vehicle->strategy->move();
-            $vehicle->strategy->emptyLoads('diesel');
+            $vehicle->strategy->stop();
+            $vehicle->strategy->emptyLoads(FuelTypes::DIESEL);
+            $vehicle->strategy->refuel(FuelTypes::DIESEL);
             break;
     }
 
-    $vehicle->strategy->stop();
-    $vehicle->strategy->refuel('gas');
     echo('-----------<br>');
 }
+
 
 
